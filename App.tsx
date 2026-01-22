@@ -10,19 +10,11 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#0D3156] rounded-full flex items-center justify-center text-[#FFC600] font-black italic">
-              ED
-            </div>
-            <div>
-              <h1 className="text-[#0D3156] font-black text-sm uppercase leading-none">AD Innovation</h1>
-              <p className="text-[#4A6278] text-[9px] font-bold uppercase tracking-tighter">Services Plus</p>
+              {/* Logo  */}
             </div>
           </div>
           
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#" className="text-[#0D3156] font-bold text-[10px] uppercase hover:text-[#FFC600] transition-colors tracking-widest">Services</a>
-            <a href="#" className="text-[#0D3156] font-bold text-[10px] uppercase hover:text-[#FFC600] transition-colors tracking-widest border-b-2 border-[#FFC600]">Réalisations</a>
-            <a href="#" className="text-[#0D3156] font-bold text-[10px] uppercase hover:text-[#FFC600] transition-colors tracking-widest">À Propos</a>
-          </nav>
+          
 
           <button className="bg-[#0D3156] text-white px-5 py-2.5 rounded text-[10px] font-extrabold uppercase tracking-widest hover:bg-slate-800 transition-colors">
             Contactez-nous
@@ -49,11 +41,7 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col items-center">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-12 h-12 bg-[#0D3156] rounded-full flex items-center justify-center text-[#FFC600] font-black italic text-xl">
-              ED
-            </div>
-            <div className="text-left">
-              <h1 className="text-[#0D3156] font-black text-lg uppercase leading-none">AD Innovation</h1>
-              <p className="text-[#4A6278] text-xs font-bold uppercase tracking-tighter">Engineering Excellence</p>
+              
             </div>
           </div>
           
