@@ -1,0 +1,8 @@
+
+{
+  "name": "Solar Project Gallery",
+  "description": "A responsive gallery component for showcasing solar installation projects with descriptions and star ratings, designed for AD Innovation Services Plus.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
