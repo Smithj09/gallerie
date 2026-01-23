@@ -79,26 +79,29 @@ const ProjectGallery: React.FC = () => {
   /* -------------------- CREATE PROJECT -------------------- */
   const handlePostProject = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isLoading || isUploading) return; 
+
     setError(null);
 
-    // Validation
     if (passkey !== REQUIRED_PASSKEY) {
       setError('Passkey incorrecte');
       return;
     }
     if (!imageUrl || !desc || !loc) {
-      setError('Tous les champs sont requis');
+      setError('Tous les champs sont requis (attendez la fin du chargement de l\'image)');
       return;
     }
 
+    setIsLoading(true); 
     try {
-      // Include the passkey in the insert so the delete policy works later
       const { error } = await supabase.from('projects').insert({
         image_url: imageUrl,
         description: desc,
         location: loc,
         rating: 0,
-        passkey: REQUIRED_PASSKEY, // Added this line to store the key in DB
+        passkey: REQUIRED_PASSKEY,
       });
 
       if (error) throw error;
@@ -110,11 +113,12 @@ const ProjectGallery: React.FC = () => {
       setImageUrl(null);
       setShowModal(false);
 
-      // Refresh project list
       await loadProjects();
     } catch (err: any) {
       console.error('Error creating project:', err);
       setError(err.message || 'Erreur lors de la création du projet.');
+    } finally {
+      setIsLoading(false); 
     }
   };
 
@@ -122,10 +126,9 @@ const ProjectGallery: React.FC = () => {
   const handleDeleteProject = async (id: string) => {
     const input = window.prompt('Entrez la passkey pour supprimer ce projet :');
     
-    if (input === null) return; // User cancelled
+    if (input === null) return;
 
     try {
-      // We pass the input to the .eq() filter so the RLS policy can verify it
       const { error } = await supabase
         .from('projects')
         .delete()
@@ -133,12 +136,10 @@ const ProjectGallery: React.FC = () => {
         .eq('passkey', input); 
 
       if (error) throw error;
-
-      // Update local state to remove the item immediately
       setProjects(prev => prev.filter(p => p.id !== id));
     } catch (err) {
       console.error('Error:', err);
-      alert('La suppression a échoué. La passkey est probablement incorrecte ou absente de la base de données.');
+      alert('La suppression a échoué. La passkey est probablement incorrecte.');
     }
   };
 
@@ -155,7 +156,7 @@ const ProjectGallery: React.FC = () => {
         </button>
       </div>
 
-      {isLoading && (
+      {isLoading && projects.length === 0 && (
         <p className="text-center text-gray-500 italic mb-4">
           Chargement des projets...
         </p>
@@ -179,27 +180,34 @@ const ProjectGallery: React.FC = () => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <form
-            onSubmit={handlePostProject}
-            className="bg-white p-6 rounded-lg max-w-md w-full space-y-4"
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <form 
+            onSubmit={handlePostProject} 
+            className="bg-white p-6 rounded-lg max-w-md w-full space-y-4 shadow-xl"
           >
-            <h3 className="text-xl font-bold">Nouveau Projet</h3>
+            <h3 className="text-xl font-bold text-gray-800 border-b pb-2">Nouveau Projet</h3>
 
-            <input type="file" onChange={handleFileUpload} />
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-600">Image du projet</label>
+              <input 
+                type="file" 
+                onChange={handleFileUpload} 
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
 
             <input
-              placeholder="Localisation"
+              placeholder="Localisation (ex: Paris, France)"
               value={loc}
               onChange={e => setLoc(e.target.value)}
-              className="border p-2 w-full rounded"
+              className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-500 outline-none"
             />
 
             <textarea
-              placeholder="Description"
+              placeholder="Description du projet"
               value={desc}
               onChange={e => setDesc(e.target.value)}
-              className="border p-2 w-full rounded"
+              className="border p-2 w-full rounded h-24 focus:ring-2 focus:ring-blue-500 outline-none"
             />
 
             <input
@@ -207,27 +215,50 @@ const ProjectGallery: React.FC = () => {
               placeholder="Passkey"
               value={passkey}
               onChange={e => setPasskey(e.target.value)}
-              className="border p-2 w-full rounded"
+              className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-500 outline-none"
             />
 
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={isUploading}
-                className="bg-green-600 text-white px-4 py-2 rounded flex-1"
-              >
-                {isUploading ? 'Chargement...' : 'Publier'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="bg-gray-300 px-4 py-2 rounded"
-              >
-                Annuler
-              </button>
+            <div className="flex flex-col gap-3 pt-2">
+              {/* Image upload status indicators */}
+              {isUploading && (
+                <p className="text-blue-600 text-sm italic animate-pulse">
+                  🔄 Téléchargement de l'image...
+                </p>
+              )}
+              {imageUrl && !isUploading && (
+                <p className="text-green-600 text-sm font-medium">
+                  ✅ Image chargée avec succès
+                </p>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={isUploading || isLoading || !imageUrl}
+                  className={`px-4 py-2 rounded flex-1 text-white font-bold transition-colors ${
+                    (isUploading || isLoading || !imageUrl) 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                >
+                  {isLoading ? 'Publication...' : 'Publier'}
+                </button>
+                
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
             </div>
 
-            {error && <p className="text-red-500">{error}</p>}
+            {error && (
+              <p className="text-red-500 text-sm bg-red-50 p-2 rounded border border-red-100">
+                {error}
+              </p>
+            )}
           </form>
         </div>
       )}
