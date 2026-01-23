@@ -81,6 +81,7 @@ const ProjectGallery: React.FC = () => {
     e.preventDefault();
     setError(null);
 
+    // Validation
     if (passkey !== REQUIRED_PASSKEY) {
       setError('Passkey incorrecte');
       return;
@@ -91,12 +92,15 @@ const ProjectGallery: React.FC = () => {
     }
 
     try {
+      // Include the passkey in the insert so the delete policy works later
       const { error } = await supabase.from('projects').insert({
         image_url: imageUrl,
         description: desc,
         location: loc,
         rating: 0,
+        passkey: REQUIRED_PASSKEY, // Added this line to store the key in DB
       });
+
       if (error) throw error;
 
       // Reset form
@@ -106,7 +110,7 @@ const ProjectGallery: React.FC = () => {
       setImageUrl(null);
       setShowModal(false);
 
-      // Add new project locally instead of reloading all
+      // Refresh project list
       await loadProjects();
     } catch (err: any) {
       console.error('Error creating project:', err);
@@ -115,26 +119,28 @@ const ProjectGallery: React.FC = () => {
   };
 
   /* -------------------- DELETE PROJECT -------------------- */
-const handleDeleteProject = async (id: string) => {
-  const input = window.prompt('Entrez la passkey pour supprimer ce projet :');
-  
-  if (input === null) return; // User cancelled
+  const handleDeleteProject = async (id: string) => {
+    const input = window.prompt('Entrez la passkey pour supprimer ce projet :');
+    
+    if (input === null) return; // User cancelled
 
-  try {
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', id)
-      .eq('passkey', input); // <--- ADD THIS LINE
+    try {
+      // We pass the input to the .eq() filter so the RLS policy can verify it
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id)
+        .eq('passkey', input); 
 
-    if (error) throw error;
+      if (error) throw error;
 
-    setProjects(prev => prev.filter(p => p.id !== id));
-  } catch (err) {
-    console.error('Error:', err);
-    alert('La suppression a échoué. La passkey est probablement incorrecte.');
-  }
-};
+      // Update local state to remove the item immediately
+      setProjects(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error('Error:', err);
+      alert('La suppression a échoué. La passkey est probablement incorrecte ou absente de la base de données.');
+    }
+  };
 
   /* -------------------- RENDER -------------------- */
   return (
@@ -210,7 +216,7 @@ const handleDeleteProject = async (id: string) => {
                 disabled={isUploading}
                 className="bg-green-600 text-white px-4 py-2 rounded flex-1"
               >
-                Publier
+                {isUploading ? 'Chargement...' : 'Publier'}
               </button>
               <button
                 type="button"
