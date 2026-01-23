@@ -115,24 +115,26 @@ const ProjectGallery: React.FC = () => {
   };
 
   /* -------------------- DELETE PROJECT -------------------- */
-  const handleDeleteProject = async (id: string) => {
-    const input = window.prompt('Entrez la passkey pour supprimer ce projet :');
-    if (input !== REQUIRED_PASSKEY) {
-      if (input !== null) alert('Passkey incorrecte');
-      return;
-    }
+const handleDeleteProject = async (id: string) => {
+  const input = window.prompt('Entrez la passkey pour supprimer ce projet :');
+  
+  if (input === null) return; // User cancelled
 
-    try {
-      const { error } = await supabase.from('projects').delete().eq('id', id);
-      if (error) throw error;
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id)
+      .eq('passkey', input); // <--- ADD THIS LINE
 
-      // Remove project locally
-      setProjects(prev => prev.filter(p => p.id !== id));
-    } catch (err) {
-      console.error('Error deleting project:', err);
-      alert('La suppression a échoué. Vérifiez la console.');
-    }
-  };
+    if (error) throw error;
+
+    setProjects(prev => prev.filter(p => p.id !== id));
+  } catch (err) {
+    console.error('Error:', err);
+    alert('La suppression a échoué. La passkey est probablement incorrecte.');
+  }
+};
 
   /* -------------------- RENDER -------------------- */
   return (
