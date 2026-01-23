@@ -1,8 +1,5 @@
-
-
-
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase'; // Path is correct for your structure
+import { supabase } from '../lib/supabase';
 import GalleryItem from './GalleryItem';
 
 interface Project {
@@ -17,6 +14,7 @@ interface Project {
 const REQUIRED_PASSKEY = "INNO-SOLAR-2025";
 
 const ProjectGallery: React.FC = () => {
+  // --- States ---
   const [projects, setProjects] = useState<Project[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [desc, setDesc] = useState('');
@@ -24,19 +22,25 @@ const ProjectGallery: React.FC = () => {
   const [passkey, setPasskey] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [isUploading, setIsUploading] = useState(false); // New state
+  const [isUploading, setIsUploading] = useState(false);
 
+  // --- Lifecycle ---
   useEffect(() => {
     loadProjects();
   }, []);
 
+  // --- Actions ---
   const loadProjects = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (data) setProjects(data as Project[]);
+    if (error) {
+      console.error("Error fetching projects:", error);
+    } else if (data) {
+      setProjects(data as Project[]);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +60,11 @@ const ProjectGallery: React.FC = () => {
         { method: 'POST', body: formData }
       );
       const data = await res.json();
-      setImageUrl(data.secure_url);
+      if (data.secure_url) {
+        setImageUrl(data.secure_url);
+      } else {
+        throw new Error("Upload failed");
+      }
     } catch (err) {
       setError("Erreur lors du téléchargement de l'image");
     } finally {
@@ -88,6 +96,7 @@ const ProjectGallery: React.FC = () => {
     if (insertError) {
       setError(insertError.message);
     } else {
+      // Reset form and close modal
       setDesc('');
       setLoc('');
       setPasskey('');
@@ -97,19 +106,35 @@ const ProjectGallery: React.FC = () => {
     }
   };
 
+  const handleDeleteProject = async (id: string) => {
+    const input = window.prompt("Entrez la passkey pour supprimer ce projet :");
+    if (input === REQUIRED_PASSKEY) {
+      const { error } = await supabase.from('projects').delete().eq('id', id);
+      if (error) {
+        alert("Erreur lors de la suppression");
+      } else {
+        setProjects(prev => prev.filter(p => p.id !== id));
+      }
+    } else if (input !== null) {
+      alert("Passkey incorrecte");
+    }
+  };
+
+  // --- Render ---
   return (
     <section className="max-w-7xl mx-auto px-4 py-16">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-bold">Nos Projets</h2>
         <button 
           onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
         >
           Ajouter un Projet
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Project Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.map(p => (
           <GalleryItem
             key={p.id}
@@ -121,51 +146,70 @@ const ProjectGallery: React.FC = () => {
               date: new Date(p.created_at).toLocaleDateString(),
               location: p.location
             }}
+            onDelete={() => handleDeleteProject(p.id)}
           />
         ))}
       </div>
 
+      {/* Upload Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <form onSubmit={handlePostProject} className="bg-white p-6 rounded-lg max-w-md w-full space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <form 
+            onSubmit={handlePostProject} 
+            className="bg-white p-6 rounded-lg max-w-md w-full space-y-4 shadow-xl"
+          >
             <h3 className="text-xl font-bold">Nouveau Projet</h3>
             
-            <input type="file" onChange={handleFileUpload} className="w-full" />
-            {isUploading && <p className="text-sm text-blue-500">Téléchargement en cours...</p>}
-            {imageUrl && <p className="text-sm text-green-500">Image prête !</p>}
+            <div>
+              <label className="block text-sm font-medium mb-1">Image du projet</label>
+              <input type="file" onChange={handleFileUpload} className="w-full text-sm" />
+              {isUploading && <p className="text-sm text-blue-500 mt-1 italic">Téléchargement en cours...</p>}
+              {imageUrl && <p className="text-sm text-green-500 mt-1">✓ Image prête !</p>}
+            </div>
 
             <input 
-              placeholder="Localisation"
+              placeholder="Localisation (ex: Paris, France)"
               value={loc} 
               onChange={e => setLoc(e.target.value)} 
               className="border p-2 w-full rounded"
+              required
             />
             
             <textarea 
-              placeholder="Description"
+              placeholder="Description du projet..."
               value={desc} 
               onChange={e => setDesc(e.target.value)} 
-              className="border p-2 w-full rounded"
+              className="border p-2 w-full rounded h-24"
+              required
             />
             
             <input 
               type="password" 
-              placeholder="Passkey"
+              placeholder="Passkey d'administration"
               value={passkey} 
               onChange={e => setPasskey(e.target.value)} 
               className="border p-2 w-full rounded"
+              required
             />
             
-            <div className="flex gap-2">
-              <button type="submit" disabled={isUploading} className="bg-green-600 text-white px-4 py-2 rounded flex-1">
-                Publier
+            <div className="flex gap-2 pt-2">
+              <button 
+                type="submit" 
+                disabled={isUploading} 
+                className={`bg-green-600 text-white px-4 py-2 rounded flex-1 font-semibold ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
+              >
+                {isUploading ? 'Patientez...' : 'Publier'}
               </button>
-              <button type="button" onClick={() => setShowModal(false)} className="bg-gray-200 px-4 py-2 rounded">
+              <button 
+                type="button" 
+                onClick={() => setShowModal(false)} 
+                className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
+              >
                 Annuler
               </button>
             </div>
             
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
           </form>
         </div>
       )}
