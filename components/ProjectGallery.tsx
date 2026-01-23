@@ -27,17 +27,20 @@ const ProjectGallery: React.FC = () => {
   /* -------------------- LOAD PROJECTS -------------------- */
   const loadProjects = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Fetch error:', error);
-    } else {
+      if (error) throw error;
       setProjects(data || []);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      setError('Impossible de charger les projets.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -55,10 +58,7 @@ const ProjectGallery: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append(
-        'upload_preset',
-        import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
-      );
+      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
 
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -85,56 +85,53 @@ const ProjectGallery: React.FC = () => {
       setError('Passkey incorrecte');
       return;
     }
-
     if (!imageUrl || !desc || !loc) {
       setError('Tous les champs sont requis');
       return;
     }
 
-    const { error } = await supabase.from('projects').insert({
-      image_url: imageUrl,
-      description: desc,
-      location: loc,
-      rating: 0,
-    });
+    try {
+      const { error } = await supabase.from('projects').insert({
+        image_url: imageUrl,
+        description: desc,
+        location: loc,
+        rating: 0,
+      });
+      if (error) throw error;
 
-    if (error) {
-      setError(error.message);
-      return;
+      // Reset form
+      setDesc('');
+      setLoc('');
+      setPasskey('');
+      setImageUrl(null);
+      setShowModal(false);
+
+      // Add new project locally instead of reloading all
+      await loadProjects();
+    } catch (err: any) {
+      console.error('Error creating project:', err);
+      setError(err.message || 'Erreur lors de la création du projet.');
     }
-
-    setDesc('');
-    setLoc('');
-    setPasskey('');
-    setImageUrl(null);
-    setShowModal(false);
-
-    await loadProjects();
   };
 
-  /* -------------------- DELETE PROJECT (FIXED) -------------------- */
+  /* -------------------- DELETE PROJECT -------------------- */
   const handleDeleteProject = async (id: string) => {
-    const input = window.prompt(
-      'Entrez la passkey pour supprimer ce projet :'
-    );
+    const input = window.prompt('Entrez la passkey pour supprimer ce projet :');
     if (input !== REQUIRED_PASSKEY) {
       if (input !== null) alert('Passkey incorrecte');
       return;
     }
 
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase.from('projects').delete().eq('id', id);
+      if (error) throw error;
 
-    if (error) {
-      console.error('Delete error:', error);
-      alert('La suppression a échoué (voir console)');
-      return;
+      // Remove project locally
+      setProjects(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      alert('La suppression a échoué. Vérifiez la console.');
     }
-
-    // 🔥 ALWAYS reload from DB
-    await loadProjects();
   };
 
   /* -------------------- RENDER -------------------- */
