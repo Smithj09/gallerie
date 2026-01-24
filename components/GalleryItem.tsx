@@ -11,14 +11,23 @@ interface GalleryItemProps {
     date: string;
   };
   onDelete: () => void;
-  onUpdateRating?: (id: string, newRating: number) => void; // Optional if you want to use the rating feature
+  onClick: () => void; // 👈 NEW
+  onUpdateRating?: (id: string, newRating: number) => void;
 }
 
-const GalleryItem: React.FC<GalleryItemProps> = ({ project, onDelete, onUpdateRating }) => {
+const GalleryItem: React.FC<GalleryItemProps> = ({
+  project,
+  onDelete,
+  onClick,
+  onUpdateRating
+}) => {
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative">
+    <div
+      onClick={onClick}
+      className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative cursor-pointer"
+    >
       
-      {/* Delete Button - Appears on Hover */}
+      {/* Delete Button */}
       <button 
         onClick={(e) => {
           e.stopPropagation();
@@ -32,7 +41,7 @@ const GalleryItem: React.FC<GalleryItemProps> = ({ project, onDelete, onUpdateRa
         </svg>
       </button>
 
-      {/* Image Section */}
+      {/* Image */}
       <div className="relative h-64 overflow-hidden">
         <img 
           src={project.imageUrl} 
@@ -44,7 +53,7 @@ const GalleryItem: React.FC<GalleryItemProps> = ({ project, onDelete, onUpdateRa
         </div>
       </div>
       
-      {/* Content Section */}
+      {/* Content */}
       <div className="p-5">
         <div className="flex justify-between items-start mb-2">
           <p className="text-slate-500 text-[11px] uppercase tracking-widest font-bold">
@@ -62,15 +71,17 @@ const GalleryItem: React.FC<GalleryItemProps> = ({ project, onDelete, onUpdateRa
         </p>
         
         <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
-          <span className="text-[#0D3156] text-xs font-bold hover:underline cursor-pointer">
+          <span className="text-[#0D3156] text-xs font-bold hover:underline">
             Voir les détails →
           </span>
           
-          {/* Avatar Stack */}
           <div className="flex -space-x-2">
             {[1, 2, 3].map(i => (
               <div key={i} className="w-6 h-6 rounded-full border-2 border-white overflow-hidden shadow-sm">
-                <img src={`https://picsum.photos/seed/${project.id}${i}/100/100`} alt="User" />
+                <img
+                  src={`https://picsum.photos/seed/${project.id}${i}/100/100`}
+                  alt="User"
+                />
               </div>
             ))}
           </div>
