@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import GalleryItem from './GalleryItem';
+import { X, ChevronLeft, ChevronRight, Plus, Loader, AlertCircle } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -136,106 +137,197 @@ const ProjectGallery: React.FC = () => {
 
   /* ---------------- RENDER ---------------- */
   return (
-    <section className="max-w-7xl mx-auto px-4 py-16">
-      {/* HEADER (z-index FIXED) */}
-      <div className="flex justify-between items-center mb-8 relative z-30">
-        <h2 className="text-3xl font-bold">Nos Projets</h2>
+    <section className="py-16">
+      {/* Section Header */}
+      <div className="flex justify-between items-center mb-12">
+        <div>
+          <h2 className="text-4xl font-black text-slate-900 mb-2">Nos Projets</h2>
+          <p className="text-slate-600 text-lg">{projects.length} réalisations</p>
+        </div>
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded relative z-40"
+          className="flex items-center justify-center w-14 h-14 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-slate-900 font-bold rounded-lg transition-all hover:shadow-lg hover:shadow-yellow-500/30"
         >
-          +
+          <Plus size={24} />
         </button>
       </div>
 
-      {/* GRID */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-        {projects.map(p => (
-          <GalleryItem
-            key={p.id}
-            project={{
-              id: p.id,
-              imageUrl: Array.isArray(p.image_url)
-                ? p.image_url[0]
-                : p.image_url,
-              description: p.description,
-              location: p.location,
-              rating: p.rating,
-              date: new Date(p.created_at).toLocaleDateString(),
-            }}
-            onDelete={() => handleDeleteProject(p.id)}
-            onClick={() => {
-              setSelectedProject(p);
-              setCurrentImage(0);
-              setZoomed(false);
-            }}
-            onUpdateRating={handleUpdateRating}
-          />
-        ))}
-      </div>
-
-      {/* ---------- ADD PROJECT MODAL ---------- */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <form
-            onSubmit={handlePostProject}
-            className="bg-white p-6 rounded-lg max-w-md w-full space-y-4"
+      {/* Loading State */}
+      {isLoading && !projects.length ? (
+        <div className="flex justify-center items-center py-32">
+          <div className="text-center">
+            <Loader className="w-12 h-12 text-yellow-500 animate-spin mx-auto mb-4" />
+            <p className="text-slate-600">Chargement des projets...</p>
+          </div>
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="text-center py-32 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50">
+          <p className="text-slate-600 text-lg mb-4">Aucun projet pour le moment</p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 rounded-lg transition-colors"
           >
-            <h3 className="text-xl font-bold">Nouveau Projet</h3>
-
-            <input type="file" onChange={handleFileUpload} />
-
-            <input
-              placeholder="Localisation"
-              value={loc}
-              onChange={e => setLoc(e.target.value)}
-              className="border p-2 w-full rounded"
+            <Plus size={18} />
+            Créer le premier projet
+          </button>
+        </div>
+      ) : (
+        /* Grid */
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map(p => (
+            <GalleryItem
+              key={p.id}
+              project={{
+                id: p.id,
+                imageUrl: Array.isArray(p.image_url)
+                  ? p.image_url[0]
+                  : p.image_url,
+                description: p.description,
+                location: p.location,
+                rating: p.rating,
+                date: new Date(p.created_at).toLocaleDateString('fr-FR'),
+              }}
+              onDelete={() => handleDeleteProject(p.id)}
+              onClick={() => {
+                setSelectedProject(p);
+                setCurrentImage(0);
+                setZoomed(false);
+              }}
+              onUpdateRating={handleUpdateRating}
             />
-
-            <textarea
-              placeholder="Description"
-              value={desc}
-              onChange={e => setDesc(e.target.value)}
-              className="border p-2 w-full rounded h-24"
-            />
-
-            <input
-              type="password"
-              placeholder="Passkey"
-              value={passkey}
-              onChange={e => setPasskey(e.target.value)}
-              className="border p-2 w-full rounded"
-            />
-
-            {isUploading && <p className="text-sm text-blue-600">Upload...</p>}
-            {imageUrl && <p className="text-sm text-green-600">Image prête</p>}
-            {error && <p className="text-sm text-red-600">{error}</p>}
-
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={!imageUrl}
-                className="bg-green-600 text-white px-4 py-2 rounded flex-1"
-              >
-                Publier
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="bg-gray-200 px-4 py-2 rounded"
-              >
-                Annuler
-              </button>
-            </div>
-          </form>
+          ))}
         </div>
       )}
 
-      {/* ---------- DETAILS MODAL ---------- */}
+      {/* ADD PROJECT MODAL */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 overflow-hidden shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
+              <h3 className="text-xl font-bold text-slate-900">Nouveau Projet</h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="p-1 hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X size={20} className="text-slate-400" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handlePostProject} className="p-6 space-y-4">
+              {/* File Upload */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  Image du projet
+                </label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    onChange={handleFileUpload}
+                    disabled={isUploading}
+                    className="sr-only"
+                    id="file-input"
+                    accept="image/*"
+                  />
+                  <label
+                    htmlFor="file-input"
+                    className="block w-full p-4 border-2 border-dashed border-slate-300 hover:border-yellow-400 rounded-lg text-center cursor-pointer transition-colors"
+                  >
+                    {isUploading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader size={18} className="animate-spin text-yellow-400" />
+                        <span className="text-slate-400">Upload...</span>
+                      </div>
+                    ) : imageUrl ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-green-600">✓ Image prête</span>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-slate-700 font-medium">Cliquez pour télécharger</p>
+                        <p className="text-xs text-slate-500 mt-1">ou glissez-déposez une image</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-2">
+                  Localisation
+                </label>
+                <input
+                  placeholder="ex: Paris, France"
+                  value={loc}
+                  onChange={e => setLoc(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:border-yellow-400 transition-colors"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  Description
+                </label>
+                <textarea
+                  placeholder="Décrivez le projet..."
+                  value={desc}
+                  onChange={e => setDesc(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:border-yellow-400 transition-colors h-24 resize-none"
+                />
+              </div>
+
+              {/* Passkey */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  Passkey
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••••••"
+                  value={passkey}
+                  onChange={e => setPasskey(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:border-yellow-400 transition-colors"
+                />
+              </div>
+
+              {/* Error Alert */}
+              {error && (
+                <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-300 rounded-lg">
+                  <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={!imageUrl || isLoading || isUploading}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-slate-600 disabled:to-slate-600 text-slate-900 font-bold rounded-lg transition-all disabled:cursor-not-allowed"
+                >
+                  Publier
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 font-medium rounded-lg transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DETAILS MODAL */}
       {selectedProject && (
         <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setSelectedProject(null)}
           onTouchStart={e => (startY.current = e.touches[0].clientY)}
           onTouchEnd={e => {
@@ -244,28 +336,102 @@ const ProjectGallery: React.FC = () => {
           }}
         >
           <div
-            className="bg-white max-w-[20rem]  w-full rounded-lg overflow-hidden"
+            className="bg-white max-w-2xl w-full rounded-2xl overflow-hidden border border-slate-200 shadow-xl"
             onClick={e => e.stopPropagation()}
           >
-            <img
-              src={
-                Array.isArray(selectedProject.image_url)
-                  ? selectedProject.image_url[currentImage]
-                  : selectedProject.image_url
-              }
-              onClick={() => setZoomed(!zoomed)}
-              className={`w-full max-h-[50vh] object-contain bg-black ${
-                zoomed ? 'scale-150' : ''
-              }`}
-            />
-            <div className="p-6">
-              <h3 className="text-2xl font-bold">
+            {/* Image Container with Navigation */}
+            <div className="relative bg-slate-950">
+              <img
+                src={
+                  Array.isArray(selectedProject.image_url)
+                    ? selectedProject.image_url[currentImage]
+                    : selectedProject.image_url
+                }
+                onClick={() => setZoomed(!zoomed)}
+                className={`w-full max-h-[60vh] object-contain cursor-zoom-in ${
+                  zoomed ? 'scale-150' : ''
+                } transition-transform`}
+              />
+
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedProject(null)}
+                className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-lg transition-colors"
+              >
+                <X size={24} className="text-white" />
+              </button>
+
+              {/* Image Navigation */}
+              {Array.isArray(selectedProject.image_url) &&
+                selectedProject.image_url.length > 1 && (
+                  <>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        setCurrentImage(
+                          (currentImage - 1 + selectedProject.image_url.length) %
+                            selectedProject.image_url.length
+                        );
+                      }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 rounded-lg transition-colors"
+                    >
+                      <ChevronLeft size={24} className="text-white" />
+                    </button>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        setCurrentImage(
+                          (currentImage + 1) % selectedProject.image_url.length
+                        );
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/70 rounded-lg transition-colors"
+                    >
+                      <ChevronRight size={24} className="text-white" />
+                    </button>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                      {selectedProject.image_url.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={e => {
+                            e.stopPropagation();
+                            setCurrentImage(i);
+                          }}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            i === currentImage ? 'bg-yellow-400' : 'bg-white/30'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+            </div>
+
+            {/* Content */}
+            <div className="p-8">
+              <h3 className="text-3xl font-black text-slate-900 mb-3">
                 {selectedProject.location}
               </h3>
-              <p className="mt-2">{selectedProject.description}</p>
-              <p className="text-sm text-gray-500 mt-2">
-                ⭐ {selectedProject.rating}
-              </p>
+
+              <div className="mb-6 pb-6 border-b border-slate-200">
+                <p className="text-slate-700 text-lg leading-relaxed">
+                  {selectedProject.description}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600 mb-1">Evaluation</p>
+                  <p className="text-2xl font-bold text-yellow-500">
+                    ★ {selectedProject.rating.toFixed(1)}/5
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDeleteProject(selectedProject.id)}
+                  className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-300"
+                >
+                  Supprimer
+                </button>
+              </div>
             </div>
           </div>
         </div>
