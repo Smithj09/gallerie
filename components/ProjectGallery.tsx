@@ -244,7 +244,7 @@ const ProjectGallery: React.FC = () => {
           }}
         >
           <div
-            className="bg-white max-w-5xl w-full rounded-lg overflow-hidden"
+            className="bg-white max-w-[20rem]  w-full rounded-lg overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <img
