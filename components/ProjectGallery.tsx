@@ -348,7 +348,7 @@ const ProjectGallery: React.FC = () => {
                     : selectedProject.image_url
                 }
                 onClick={() => setZoomed(!zoomed)}
-                className={`w-full max-h-[60vh] object-contain cursor-zoom-in ${
+                className={`w-full max-h-[40vh] object-contain cursor-zoom-in ${
                   zoomed ? 'scale-150' : ''
                 } transition-transform`}
               />
