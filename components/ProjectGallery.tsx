@@ -24,7 +24,7 @@ const ProjectGallery: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  /* ---------- DETAILS MODAL STATES ---------- */
+  /* ---------- DETAILS MODAL ---------- */
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [currentImage, setCurrentImage] = useState(0);
   const [zoomed, setZoomed] = useState(false);
@@ -33,20 +33,13 @@ const ProjectGallery: React.FC = () => {
   /* ---------------- LOAD PROJECTS ---------------- */
   const loadProjects = async () => {
     setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setProjects(data || []);
-    } catch (err) {
-      console.error(err);
-      setError('Impossible de charger les projets.');
-    } finally {
-      setIsLoading(false);
-    }
+    if (!error) setProjects(data || []);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -88,7 +81,7 @@ const ProjectGallery: React.FC = () => {
   /* ---------------- CREATE PROJECT ---------------- */
   const handlePostProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading || isUploading) return;
+    if (isUploading || isLoading) return;
 
     if (passkey !== REQUIRED_PASSKEY) {
       setError('Passkey incorrecte');
@@ -101,29 +94,22 @@ const ProjectGallery: React.FC = () => {
     }
 
     setIsLoading(true);
-    try {
-      const { error } = await supabase.from('projects').insert({
-        image_url: imageUrl,
-        description: desc,
-        location: loc,
-        rating: 0,
-        passkey: REQUIRED_PASSKEY,
-      });
 
-      if (error) throw error;
+    await supabase.from('projects').insert({
+      image_url: imageUrl,
+      description: desc,
+      location: loc,
+      rating: 0,
+      passkey: REQUIRED_PASSKEY,
+    });
 
-      setDesc('');
-      setLoc('');
-      setPasskey('');
-      setImageUrl(null);
-      setShowModal(false);
-
-      loadProjects();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    setShowModal(false);
+    setImageUrl(null);
+    setDesc('');
+    setLoc('');
+    setPasskey('');
+    loadProjects();
+    setIsLoading(false);
   };
 
   /* ---------------- DELETE PROJECT ---------------- */
@@ -131,33 +117,40 @@ const ProjectGallery: React.FC = () => {
     const input = window.prompt('Entrez la passkey :');
     if (!input) return;
 
-    const { error } = await supabase
+    await supabase
       .from('projects')
       .delete()
       .eq('id', id)
       .eq('passkey', input);
 
-    if (!error) {
-      setProjects(prev => prev.filter(p => p.id !== id));
-    } else {
-      alert('Passkey incorrecte');
-    }
+    setProjects(p => p.filter(x => x.id !== id));
+  };
+
+  /* ---------------- UPDATE RATING ---------------- */
+  const handleUpdateRating = async (id: string, newRating: number) => {
+    await supabase.from('projects').update({ rating: newRating }).eq('id', id);
+    setProjects(p =>
+      p.map(x => (x.id === id ? { ...x, rating: newRating } : x))
+    );
   };
 
   /* ---------------- RENDER ---------------- */
   return (
     <section className="max-w-7xl mx-auto px-4 py-16">
-      <div className="flex justify-between items-center mb-8">
+      {/* HEADER (z-index FIXED) */}
+      <div className="flex justify-between items-center mb-8 relative z-30">
         <h2 className="text-3xl font-bold">Nos Projets</h2>
         <button
+          type="button"
           onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded relative z-40"
         >
           +
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* GRID */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
         {projects.map(p => (
           <GalleryItem
             key={p.id}
@@ -167,8 +160,8 @@ const ProjectGallery: React.FC = () => {
                 ? p.image_url[0]
                 : p.image_url,
               description: p.description,
-              rating: p.rating,
               location: p.location,
+              rating: p.rating,
               date: new Date(p.created_at).toLocaleDateString(),
             }}
             onDelete={() => handleDeleteProject(p.id)}
@@ -177,109 +170,106 @@ const ProjectGallery: React.FC = () => {
               setCurrentImage(0);
               setZoomed(false);
             }}
+            onUpdateRating={handleUpdateRating}
           />
         ))}
       </div>
 
-      {/* ---------------- DETAILS MODAL ---------------- */}
-      {selectedProject && (() => {
-        const images = Array.isArray(selectedProject.image_url)
-          ? selectedProject.image_url
-          : [selectedProject.image_url];
-
-        return (
-          <div
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-            onClick={() => setSelectedProject(null)}
-            onTouchStart={e => (startY.current = e.touches[0].clientY)}
-            onTouchEnd={e => {
-              if (e.changedTouches[0].clientY - startY.current > 120) {
-                setSelectedProject(null);
-              }
-            }}
+      {/* ---------- ADD PROJECT MODAL ---------- */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <form
+            onSubmit={handlePostProject}
+            className="bg-white p-6 rounded-lg max-w-md w-full space-y-4"
           >
-            <div
-              className="bg-white max-w-5xl w-full rounded-lg overflow-hidden relative"
-              onClick={e => e.stopPropagation()}
-            >
+            <h3 className="text-xl font-bold">Nouveau Projet</h3>
+
+            <input type="file" onChange={handleFileUpload} />
+
+            <input
+              placeholder="Localisation"
+              value={loc}
+              onChange={e => setLoc(e.target.value)}
+              className="border p-2 w-full rounded"
+            />
+
+            <textarea
+              placeholder="Description"
+              value={desc}
+              onChange={e => setDesc(e.target.value)}
+              className="border p-2 w-full rounded h-24"
+            />
+
+            <input
+              type="password"
+              placeholder="Passkey"
+              value={passkey}
+              onChange={e => setPasskey(e.target.value)}
+              className="border p-2 w-full rounded"
+            />
+
+            {isUploading && <p className="text-sm text-blue-600">Upload...</p>}
+            {imageUrl && <p className="text-sm text-green-600">Image prête</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div className="flex gap-2">
               <button
-                onClick={() => setSelectedProject(null)}
-                className="absolute top-3 right-3 bg-black/60 text-white w-8 h-8 rounded-full"
+                type="submit"
+                disabled={!imageUrl}
+                className="bg-green-600 text-white px-4 py-2 rounded flex-1"
               >
-                ✕
+                Publier
               </button>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="bg-gray-200 px-4 py-2 rounded"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
-              <div className="bg-black flex items-center justify-center">
-                <img
-                  src={images[currentImage]}
-                  onClick={() => setZoomed(!zoomed)}
-                  className={`max-h-[75vh] w-full object-contain cursor-zoom-in transition ${
-                    zoomed ? 'scale-150 cursor-zoom-out' : ''
-                  }`}
-                />
-
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => setCurrentImage(i => Math.max(i - 1, 0))}
-                      className="absolute left-4 text-white text-3xl"
-                    >
-                      ‹
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentImage(i =>
-                          Math.min(i + 1, images.length - 1)
-                        )
-                      }
-                      className="absolute right-4 text-white text-3xl"
-                    >
-                      ›
-                    </button>
-                  </>
-                )}
-              </div>
-
-              <div className="p-6 space-y-3">
-                <h3 className="text-2xl font-bold">
-                  {selectedProject.location}
-                </h3>
-
-                <p>{selectedProject.description}</p>
-
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>
-                    📅{' '}
-                    {new Date(
-                      selectedProject.created_at
-                    ).toLocaleDateString()}
-                  </span>
-                  <span>⭐ {selectedProject.rating}</span>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() =>
-                      navigator.clipboard.writeText(images[currentImage])
-                    }
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
-                  >
-                    🔗 Partager
-                  </button>
-
-                  <a
-                    href={images[currentImage]}
-                    target="_blank"
-                    className="bg-gray-200 px-4 py-2 rounded"
-                  >
-                    🖼️ Plein écran
-                  </a>
-                </div>
-              </div>
+      {/* ---------- DETAILS MODAL ---------- */}
+      {selectedProject && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedProject(null)}
+          onTouchStart={e => (startY.current = e.touches[0].clientY)}
+          onTouchEnd={e => {
+            if (e.changedTouches[0].clientY - startY.current > 120)
+              setSelectedProject(null);
+          }}
+        >
+          <div
+            className="bg-white max-w-5xl w-full rounded-lg overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <img
+              src={
+                Array.isArray(selectedProject.image_url)
+                  ? selectedProject.image_url[currentImage]
+                  : selectedProject.image_url
+              }
+              onClick={() => setZoomed(!zoomed)}
+              className={`w-full max-h-[75vh] object-contain bg-black ${
+                zoomed ? 'scale-150' : ''
+              }`}
+            />
+            <div className="p-6">
+              <h3 className="text-2xl font-bold">
+                {selectedProject.location}
+              </h3>
+              <p className="mt-2">{selectedProject.description}</p>
+              <p className="text-sm text-gray-500 mt-2">
+                ⭐ {selectedProject.rating}
+              </p>
             </div>
           </div>
-        );
-      })()}
+        </div>
+      )}
     </section>
   );
 };

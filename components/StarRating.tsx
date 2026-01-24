@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface StarRatingProps {
@@ -8,29 +7,32 @@ interface StarRatingProps {
   interactive?: boolean;
 }
 
-const StarRating: React.FC<StarRatingProps> = ({ 
-  rating, 
-  maxRating = 5, 
-  onRate, 
-  interactive = false 
+const StarRating: React.FC<StarRatingProps> = ({
+  rating,
+  maxRating = 5,
+  onRate,
+  interactive = false
 }) => {
   return (
     <div className="flex gap-1">
-      {[...Array(maxRating)].map((_, index) => {
-        const starValue = index + 1;
-        const isFilled = starValue <= rating;
-        
+      {[...Array(maxRating)].map((_, i) => {
+        const value = i + 1;
+        const filled = value <= rating;
+
         return (
           <button
-            key={index}
+            key={i}
             type="button"
             disabled={!interactive}
-            onClick={() => onRate && onRate(starValue)}
-            className={`${interactive ? 'cursor-pointer transform hover:scale-110 transition-transform' : 'cursor-default'} ${
-              isFilled ? 'text-[#FFC600]' : 'text-slate-300'
+            onClick={e => {
+              e.stopPropagation();
+              onRate?.(value);
+            }}
+            className={`${interactive ? 'cursor-pointer' : ''} ${
+              filled ? 'text-yellow-400' : 'text-gray-300'
             }`}
           >
-            <i className={`fa-solid fa-star ${isFilled ? '' : 'fa-regular'}`}></i>
+            ★
           </button>
         );
       })}
