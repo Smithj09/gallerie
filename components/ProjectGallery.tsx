@@ -254,7 +254,7 @@ const ProjectGallery: React.FC = () => {
                   : selectedProject.image_url
               }
               onClick={() => setZoomed(!zoomed)}
-              className={`w-full max-h-[75vh] object-contain bg-black ${
+              className={`w-full max-h-[50vh] object-contain bg-black ${
                 zoomed ? 'scale-150' : ''
               }`}
             />
