@@ -19,7 +19,7 @@ const App: React.FC = () => {
           
 
           <button className="bg-[#0D3156] text-white px-5 py-2.5 rounded text-[10px] font-extrabold uppercase tracking-widest hover:bg-red-800 transition-colors">
-            <a href="">
+            <a href="https://platform-one-tan.vercel.app/#solutions">
               Retour
             </a>
           </button>
