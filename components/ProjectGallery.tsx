@@ -417,7 +417,7 @@ const ProjectGallery: React.FC = () => {
           }}
         >
           <div
-            className="bg-white max-w-4xl w-full max-h-[78vh] sm:max-h-[78vh] md:max-h-[75vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col lg:flex-row"
+            className="bg-white max-w-4xl w-full max-h-[78vh] sm:max-h-[78vh] md:max-h-[75vh] overflow-hidden border border-slate-200 shadow-xl flex flex-col lg:flex-row"
             onClick={e => e.stopPropagation()}
           >
             {/* Left Side - Image Container with Navigation */}
