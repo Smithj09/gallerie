@@ -417,11 +417,11 @@ const ProjectGallery: React.FC = () => {
           }}
         >
           <div
-            className="bg-white max-w-6xl w-full max-h-[90vh] sm:max-h-[85vh] md:max-h-[75vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col sm:flex-row"
+            className="bg-white max-w-6xl w-full max-h-[78vh] sm:max-h-[78vh] md:max-h-[75vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             {/* Left Side - Image Container with Navigation */}
-            <div className="relative w-full sm:w-3/5 h-64 sm:h-80 md:h-full flex-shrink-0 overflow-hidden bg-slate-950">
+            <div className="relative w-full h-64 sm:h-72 md:h-80 flex-shrink-0 overflow-hidden bg-slate-950">
               <img
                 src={
                   Array.isArray(selectedProject.image_url)
