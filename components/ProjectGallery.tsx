@@ -417,11 +417,11 @@ const ProjectGallery: React.FC = () => {
           }}
         >
           <div
-            className="bg-white max-w-6xl w-full max-h-[75vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col md:flex-row"
+            className="bg-white max-w-6xl w-full max-h-[90vh] sm:max-h-[85vh] md:max-h-[75vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col sm:flex-row"
             onClick={e => e.stopPropagation()}
           >
             {/* Left Side - Image Container with Navigation */}
-            <div className="relative w-full md:w-3/5 h-40 md:h-full flex-shrink-0 overflow-hidden bg-slate-950">
+            <div className="relative w-full sm:w-3/5 h-64 sm:h-80 md:h-full flex-shrink-0 overflow-hidden bg-slate-950">
               <img
                 src={
                   Array.isArray(selectedProject.image_url)
@@ -429,7 +429,7 @@ const ProjectGallery: React.FC = () => {
                     : selectedProject.image_url
                 }
                 onClick={() => setZoomed(!zoomed)}
-                className={`w-full h-full object-contain cursor-zoom-in ${
+                className={`w-full h-full object-cover sm:object-contain cursor-zoom-in ${
                   zoomed ? 'scale-150' : ''
                 } transition-transform`}
               />
