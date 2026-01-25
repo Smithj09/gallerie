@@ -327,7 +327,7 @@ const ProjectGallery: React.FC = () => {
       {/* DETAILS MODAL */}
       {selectedProject && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setSelectedProject(null)}
           onTouchStart={e => (startY.current = e.touches[0].clientY)}
           onTouchEnd={e => {
@@ -336,11 +336,11 @@ const ProjectGallery: React.FC = () => {
           }}
         >
           <div
-            className="bg-white max-w-2xl w-full rounded-2xl overflow-hidden border border-slate-200 shadow-xl"
+            className="bg-white max-w-4xl w-full h-[90vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             {/* Image Container with Navigation */}
-            <div className="relative bg-slate-950">
+            <div className="relative flex-1 overflow-hidden bg-slate-950">
               <img
                 src={
                   Array.isArray(selectedProject.image_url)
@@ -348,7 +348,7 @@ const ProjectGallery: React.FC = () => {
                     : selectedProject.image_url
                 }
                 onClick={() => setZoomed(!zoomed)}
-                className={`w-full max-h-[40vh] object-contain cursor-zoom-in ${
+                className={`w-full h-full object-contain cursor-zoom-in ${
                   zoomed ? 'scale-150' : ''
                 } transition-transform`}
               />
@@ -406,28 +406,26 @@ const ProjectGallery: React.FC = () => {
                 )}
             </div>
 
-            {/* Content */}
-            <div className="p-8">
-              <h3 className="text-3xl font-black text-slate-900 mb-3">
+            {/* Content Footer */}
+            <div className="p-4 bg-white border-t border-slate-200">
+              <h3 className="text-2xl font-black text-slate-900 mb-2">
                 {selectedProject.location}
               </h3>
 
-              <div className="mb-6 pb-6 border-b border-slate-200">
-                <p className="text-slate-700 text-lg leading-relaxed">
-                  {selectedProject.description}
-                </p>
-              </div>
+              <p className="text-slate-700 text-sm mb-4 line-clamp-2">
+                {selectedProject.description}
+              </p>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-600 mb-1">Evaluation</p>
-                  <p className="text-2xl font-bold text-yellow-500">
+                  <p className="text-xs text-slate-600 mb-1">Evaluation</p>
+                  <p className="text-lg font-bold text-yellow-500">
                     ★ {selectedProject.rating.toFixed(1)}/5
                   </p>
                 </div>
                 <button
                   onClick={() => handleDeleteProject(selectedProject.id)}
-                  className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-300"
+                  className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-300 text-sm"
                 >
                   Supprimer
                 </button>

@@ -7,13 +7,13 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-slate-100 py-4 px-6">
+      <header className="sticky top-0 z-50 bg-white border-b border-slate-100 py-3 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex-shrink-0 cursor-pointer py-2">
+          <div className="flex-shrink-0 cursor-pointer">
             <img 
               src="https://i.postimg.cc/5y2pkLJ9/logo.jpg" 
               alt="Logo" 
-              className="h-20 w-auto object-contain" 
+              className="h-16 w-auto object-contain" 
             />
           </div>
 
@@ -52,13 +52,36 @@ const App: React.FC = () => {
 
       {/* Footer */}
       <footer className="relative mt-32 border-t border-slate-200 bg-gradient-to-b from-slate-50 to-white py-16 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col items-center">
-          <div className="flex items-center gap-3 mb-8">
-            <img 
-              src="https://i.postimg.cc/5y2pkLJ9/logo.jpg" 
-              alt="Solar Logo" 
-              className="h-40 w-auto object-contain" 
-            />
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center font-bold text-slate-900 text-sm">
+                  ☀
+                </div>
+                <h3 className="font-bold text-white">AD Innovation</h3>
+              </div>
+              <p className="text-sm text-slate-400">Solutions énergétiques durables pour un avenir meilleur.</p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Navigation</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li><a href="#" className="hover:text-yellow-400 transition-colors">Accueil</a></li>
+                <li><a href="#" className="hover:text-yellow-400 transition-colors">Services</a></li>
+                <li><a href="#" className="hover:text-yellow-400 transition-colors">Projets</a></li>
+                <li><a href="#" className="hover:text-yellow-400 transition-colors">Contact</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Contact</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li>📧 info@adinnovation.com</li>
+                <li>📱 +33 (0) 1 23 45 67 89</li>
+                <li>📍 Paris, France</li>
+              </ul>
+            </div>
           </div>
           
           <div className="border-t border-slate-200 pt-8 text-center text-sm text-slate-500">
