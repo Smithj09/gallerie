@@ -417,11 +417,11 @@ const ProjectGallery: React.FC = () => {
           }}
         >
           <div
-            className="bg-white max-w-6xl w-full max-h-[78vh] sm:max-h-[78vh] md:max-h-[75vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col"
+            className="bg-white max-w-4xl w-full max-h-[78vh] sm:max-h-[78vh] md:max-h-[75vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col lg:flex-row"
             onClick={e => e.stopPropagation()}
           >
             {/* Left Side - Image Container with Navigation */}
-            <div className="relative w-full h-64 sm:h-72 md:h-80 flex-shrink-0 overflow-hidden bg-slate-950">
+            <div className="relative w-full lg:w-3/5 h-64 sm:h-72 md:h-80 lg:h-auto flex-shrink-0 overflow-hidden bg-slate-950">
               <img
                 src={
                   Array.isArray(selectedProject.image_url)
@@ -429,7 +429,7 @@ const ProjectGallery: React.FC = () => {
                     : selectedProject.image_url
                 }
                 onClick={() => setZoomed(!zoomed)}
-                className={`w-full h-full object-cover sm:object-contain cursor-zoom-in ${
+                className={`w-full h-full object-cover cursor-zoom-in ${
                   zoomed ? 'scale-150' : ''
                 } transition-transform`}
               />
@@ -488,7 +488,7 @@ const ProjectGallery: React.FC = () => {
             </div>
 
             {/* Right Side - Project Details & Comments */}
-            <div className="w-full md:w-2/5 flex-1 flex flex-col bg-white overflow-y-auto">
+            <div className="w-full md:w-2/5 lg:w-1/3 flex-1 flex flex-col bg-white overflow-y-auto">
               {/* Project Info Header */}
               <div className="p-3 md:p-6 border-b border-slate-200 flex-shrink-0">
                 <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-1 md:mb-2">
