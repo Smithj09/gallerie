@@ -417,11 +417,11 @@ const ProjectGallery: React.FC = () => {
           }}
         >
           <div
-            className="bg-white max-w-6xl w-full max-h-[90vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col md:flex-row"
+            className="bg-white max-w-6xl w-full max-h-[75vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col md:flex-row"
             onClick={e => e.stopPropagation()}
           >
             {/* Left Side - Image Container with Navigation */}
-            <div className="relative w-full md:w-3/5 h-64 md:h-full flex-shrink-0 overflow-hidden bg-slate-950">
+            <div className="relative w-full md:w-3/5 h-40 md:h-full flex-shrink-0 overflow-hidden bg-slate-950">
               <img
                 src={
                   Array.isArray(selectedProject.image_url)
@@ -490,25 +490,25 @@ const ProjectGallery: React.FC = () => {
             {/* Right Side - Project Details & Comments */}
             <div className="w-full md:w-2/5 flex-1 flex flex-col bg-white overflow-y-auto">
               {/* Project Info Header */}
-              <div className="p-4 md:p-6 border-b border-slate-200 flex-shrink-0">
-                <h3 className="text-2xl font-black text-slate-900 mb-2">
+              <div className="p-3 md:p-6 border-b border-slate-200 flex-shrink-0">
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-1 md:mb-2">
                   {selectedProject.location}
                 </h3>
 
-                <p className="text-slate-700 text-sm mb-4">
+                <p className="text-slate-700 text-xs md:text-sm mb-3 md:mb-4 line-clamp-2">
                   {selectedProject.description}
                 </p>
 
                 {/* Rating Section */}
-                <div className="mb-4">
-                  <p className="text-xs text-slate-600 mb-2 font-semibold">Évaluer ce projet</p>
-                  <div className="flex items-center gap-3">
+                <div className="mb-3 md:mb-4">
+                  <p className="text-xs text-slate-600 mb-1 md:mb-2 font-semibold">Évaluer ce projet</p>
+                  <div className="flex items-center gap-2 md:gap-3">
                     <StarRating
                       rating={selectedProject.rating}
                       interactive
                       onRate={r => handleUpdateRating(selectedProject.id, r)}
                     />
-                    <span className="text-sm font-bold text-yellow-500">
+                    <span className="text-xs md:text-sm font-bold text-yellow-500">
                       {selectedProject.rating.toFixed(1)}/5
                     </span>
                   </div>
@@ -516,7 +516,7 @@ const ProjectGallery: React.FC = () => {
 
                 <button
                   onClick={() => handleDeleteProject(selectedProject.id)}
-                  className="w-full px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-300 text-sm"
+                  className="w-full px-3 py-1.5 md:py-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-300 text-xs md:text-sm"
                 >
                   Supprimer le projet
                 </button>
@@ -524,14 +524,14 @@ const ProjectGallery: React.FC = () => {
 
               {/* Comments Section */}
               <div className="flex-1 flex flex-col min-h-0">
-                <div className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-200 flex-shrink-0">
-                  <h4 className="text-base md:text-lg font-bold text-slate-900">
+                <div className="px-3 md:px-6 py-2 md:py-4 border-b border-slate-200 flex-shrink-0">
+                  <h4 className="text-sm md:text-lg font-bold text-slate-900">
                     Commentaires ({comments.length})
                   </h4>
                 </div>
 
                 {/* Comments List */}
-                <div className="flex-1 overflow-y-auto px-4 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4">
+                <div className="flex-1 overflow-y-auto px-3 md:px-6 py-2 md:py-4 space-y-2 md:space-y-4">
                   {isLoadingComments ? (
                     <div className="flex justify-center py-8">
                       <Loader className="w-6 h-6 text-yellow-500 animate-spin" />
