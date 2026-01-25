@@ -26,20 +26,20 @@ const App: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative px-6 py-20 md:py-32 overflow-hidden bg-gradient-to-br from-slate-50 to-white">
+      <section className="relative px-6 py-12 md:py-16 overflow-hidden bg-gradient-to-br from-slate-50 to-white">
         <div className="absolute inset-0 bg-gradient-to-b from-yellow-500/5 to-transparent" />
         <div className="absolute top-20 right-10 w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl" />
         
         <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-block mb-6 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/30">
+          <div className="inline-block mb-3 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/30">
             <p className="text-sm font-semibold text-yellow-400">Notre Portfolio</p>
           </div>
           
-          <h2 className="text-5xl md:text-6xl font-black text-slate-900 mb-6 leading-tight">
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-3 leading-tight">
             Réalisations <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 bg-clip-text text-transparent">Solaires</span>
           </h2>
           
-          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
             Installation, entretien et performance énergétique à travers tout le territoire. Découvrez nos projets d'excellence.
           </p>
         </div>

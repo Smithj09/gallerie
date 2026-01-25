@@ -28,7 +28,7 @@ const GalleryItem: React.FC<GalleryItemProps> = ({
       className="group relative overflow-hidden rounded-xl cursor-pointer bg-white border border-slate-200 hover:border-yellow-400 hover:shadow-lg transition-all duration-300 h-96 flex flex-col shadow-md"
     >
       {/* Image Container */}
-      <div className="relative flex-1 overflow-hidden bg-slate-100">
+      <div className="relative h-72 overflow-hidden bg-slate-100 w-full">
         <img 
           src={project.imageUrl} 
           alt={project.location}
@@ -57,12 +57,12 @@ const GalleryItem: React.FC<GalleryItemProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-4 flex flex-col">
+      <div className="p-3 flex flex-col">
         {/* Location & Date */}
-        <div className="space-y-2 mb-3">
+        <div className="space-y-1 mb-2">
           <div className="flex items-start gap-2">
             <MapPin size={16} className="text-yellow-500 flex-shrink-0 mt-0.5" />
-            <h3 className="font-bold text-slate-900 text-lg group-hover:text-yellow-600 transition-colors">
+            <h3 className="font-bold text-slate-900 text-base group-hover:text-yellow-600 transition-colors">
               {project.location}
             </h3>
           </div>
@@ -73,12 +73,12 @@ const GalleryItem: React.FC<GalleryItemProps> = ({
         </div>
 
         {/* Description */}
-        <p className="text-sm text-slate-700 line-clamp-2 mb-4 flex-grow">
+        <p className="text-xs text-slate-700 line-clamp-2 mb-2 flex-grow">
           {project.description}
         </p>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+        <div className="flex items-center justify-between pt-2 border-t border-slate-200">
           <StarRating
             rating={project.rating}
             interactive
