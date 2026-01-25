@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import GalleryItem from './GalleryItem';
+import StarRating from './StarRating';
 import { X, ChevronLeft, ChevronRight, Plus, Loader, AlertCircle } from 'lucide-react';
 
 interface Project {
@@ -9,6 +10,14 @@ interface Project {
   description: string;
   location: string;
   rating: number;
+  created_at: string;
+}
+
+interface Comment {
+  id: string;
+  project_id: string;
+  author_name: string;
+  comment_text: string;
   created_at: string;
 }
 
@@ -30,6 +39,11 @@ const ProjectGallery: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const [zoomed, setZoomed] = useState(false);
   const startY = useRef(0);
+
+  /* ---------- COMMENTS ---------- */
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState({ author: '', text: '' });
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
 
   /* ---------------- LOAD PROJECTS ---------------- */
   const loadProjects = async () => {
@@ -129,10 +143,69 @@ const ProjectGallery: React.FC = () => {
 
   /* ---------------- UPDATE RATING ---------------- */
   const handleUpdateRating = async (id: string, newRating: number) => {
-    await supabase.from('projects').update({ rating: newRating }).eq('id', id);
-    setProjects(p =>
-      p.map(x => (x.id === id ? { ...x, rating: newRating } : x))
-    );
+    const { error } = await supabase
+      .from('projects')
+      .update({ rating: newRating })
+      .eq('id', id);
+
+    if (!error) {
+      setProjects(p =>
+        p.map(x => (x.id === id ? { ...x, rating: newRating } : x))
+      );
+      // Update selected project if it's open
+      if (selectedProject && selectedProject.id === id) {
+        setSelectedProject({ ...selectedProject, rating: newRating });
+      }
+    }
+  };
+
+  /* ---------------- LOAD COMMENTS ---------------- */
+  const loadComments = async (projectId: string) => {
+    setIsLoadingComments(true);
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setComments(data);
+    }
+    setIsLoadingComments(false);
+  };
+
+  /* ---------------- ADD COMMENT ---------------- */
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProject || !newComment.author.trim() || !newComment.text.trim()) {
+      return;
+    }
+
+    const { error } = await supabase.from('comments').insert({
+      project_id: selectedProject.id,
+      author_name: newComment.author.trim(),
+      comment_text: newComment.text.trim(),
+    });
+
+    if (!error) {
+      setNewComment({ author: '', text: '' });
+      loadComments(selectedProject.id);
+    }
+  };
+
+  /* ---------------- DELETE COMMENT ---------------- */
+  const handleDeleteComment = async (commentId: string) => {
+    const input = window.prompt('Entrez la passkey pour supprimer ce commentaire :');
+    if (!input || input !== REQUIRED_PASSKEY) return;
+
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (!error && selectedProject) {
+      loadComments(selectedProject.id);
+    }
   };
 
   /* ---------------- RENDER ---------------- */
@@ -193,6 +266,7 @@ const ProjectGallery: React.FC = () => {
                 setSelectedProject(p);
                 setCurrentImage(0);
                 setZoomed(false);
+                loadComments(p.id);
               }}
               onUpdateRating={handleUpdateRating}
             />
@@ -328,19 +402,26 @@ const ProjectGallery: React.FC = () => {
       {selectedProject && (
         <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedProject(null)}
+          onClick={() => {
+            setSelectedProject(null);
+            setComments([]);
+            setNewComment({ author: '', text: '' });
+          }}
           onTouchStart={e => (startY.current = e.touches[0].clientY)}
           onTouchEnd={e => {
-            if (e.changedTouches[0].clientY - startY.current > 120)
+            if (e.changedTouches[0].clientY - startY.current > 120) {
               setSelectedProject(null);
+              setComments([]);
+              setNewComment({ author: '', text: '' });
+            }
           }}
         >
           <div
-            className="bg-white max-w-4xl w-full h-[90vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col"
+            className="bg-white max-w-6xl w-full max-h-[90vh] rounded-2xl overflow-hidden border border-slate-200 shadow-xl flex flex-col md:flex-row"
             onClick={e => e.stopPropagation()}
           >
-            {/* Image Container with Navigation */}
-            <div className="relative flex-1 overflow-hidden bg-slate-950">
+            {/* Left Side - Image Container with Navigation */}
+            <div className="relative w-full md:w-3/5 h-64 md:h-full flex-shrink-0 overflow-hidden bg-slate-950">
               <img
                 src={
                   Array.isArray(selectedProject.image_url)
@@ -406,29 +487,119 @@ const ProjectGallery: React.FC = () => {
                 )}
             </div>
 
-            {/* Content Footer */}
-            <div className="p-4 bg-white border-t border-slate-200">
-              <h3 className="text-2xl font-black text-slate-900 mb-2">
-                {selectedProject.location}
-              </h3>
+            {/* Right Side - Project Details & Comments */}
+            <div className="w-full md:w-2/5 flex-1 flex flex-col bg-white overflow-y-auto">
+              {/* Project Info Header */}
+              <div className="p-4 md:p-6 border-b border-slate-200 flex-shrink-0">
+                <h3 className="text-2xl font-black text-slate-900 mb-2">
+                  {selectedProject.location}
+                </h3>
 
-              <p className="text-slate-700 text-sm mb-4 line-clamp-2">
-                {selectedProject.description}
-              </p>
+                <p className="text-slate-700 text-sm mb-4">
+                  {selectedProject.description}
+                </p>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-600 mb-1">Evaluation</p>
-                  <p className="text-lg font-bold text-yellow-500">
-                    ★ {selectedProject.rating.toFixed(1)}/5
-                  </p>
+                {/* Rating Section */}
+                <div className="mb-4">
+                  <p className="text-xs text-slate-600 mb-2 font-semibold">Évaluer ce projet</p>
+                  <div className="flex items-center gap-3">
+                    <StarRating
+                      rating={selectedProject.rating}
+                      interactive
+                      onRate={r => handleUpdateRating(selectedProject.id, r)}
+                    />
+                    <span className="text-sm font-bold text-yellow-500">
+                      {selectedProject.rating.toFixed(1)}/5
+                    </span>
+                  </div>
                 </div>
+
                 <button
                   onClick={() => handleDeleteProject(selectedProject.id)}
-                  className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-300 text-sm"
+                  className="w-full px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-300 text-sm"
                 >
-                  Supprimer
+                  Supprimer le projet
                 </button>
+              </div>
+
+              {/* Comments Section */}
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-200 flex-shrink-0">
+                  <h4 className="text-base md:text-lg font-bold text-slate-900">
+                    Commentaires ({comments.length})
+                  </h4>
+                </div>
+
+                {/* Comments List */}
+                <div className="flex-1 overflow-y-auto px-4 md:px-6 py-3 md:py-4 space-y-3 md:space-y-4">
+                  {isLoadingComments ? (
+                    <div className="flex justify-center py-8">
+                      <Loader className="w-6 h-6 text-yellow-500 animate-spin" />
+                    </div>
+                  ) : comments.length === 0 ? (
+                    <p className="text-center text-slate-500 text-sm py-8">
+                      Aucun commentaire pour le moment
+                    </p>
+                  ) : (
+                    comments.map(comment => (
+                      <div
+                        key={comment.id}
+                        className="bg-slate-50 rounded-lg p-3 border border-slate-200"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="font-semibold text-slate-900 text-sm">
+                              {comment.author_name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {new Date(comment.created_at).toLocaleDateString('fr-FR', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                        <p className="text-slate-700 text-sm">{comment.comment_text}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Add Comment Form */}
+                <div className="p-3 md:p-4 border-t border-slate-200 bg-slate-50 flex-shrink-0">
+                  <form onSubmit={handleAddComment} className="space-y-2 md:space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Votre nom"
+                      value={newComment.author}
+                      onChange={e => setNewComment({ ...newComment, author: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-500 focus:outline-none focus:border-yellow-400"
+                      required
+                    />
+                    <textarea
+                      placeholder="Votre commentaire..."
+                      value={newComment.text}
+                      onChange={e => setNewComment({ ...newComment, text: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-500 focus:outline-none focus:border-yellow-400 resize-none h-16 md:h-20"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="w-full px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-slate-900 font-bold rounded-lg transition-all text-sm"
+                    >
+                      Publier
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

@@ -51,42 +51,9 @@ const App: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="relative mt-32 border-t border-slate-200 bg-gradient-to-b from-slate-50 to-white py-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-12 mb-12">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center font-bold text-slate-900 text-sm">
-                  ☀
-                </div>
-                <h3 className="font-bold text-white">AD Innovation</h3>
-              </div>
-              <p className="text-sm text-slate-400">Solutions énergétiques durables pour un avenir meilleur.</p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Navigation</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
-                <li><a href="#" className="hover:text-yellow-400 transition-colors">Accueil</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition-colors">Services</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition-colors">Projets</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Contact</h4>
-              <ul className="space-y-2 text-sm text-slate-600">
-                <li>📧 info@adinnovation.com</li>
-                <li>📱 +33 (0) 1 23 45 67 89</li>
-                <li>📍 Paris, France</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-slate-200 pt-8 text-center text-sm text-slate-500">
-            <p>&copy; {new Date().getFullYear()} AD Innovation Services Plus. Tous droits réservés.</p>
-          </div>
+      <footer className="relative mt-32 border-t border-slate-200 bg-gradient-to-b from-slate-50 to-white py-8 px-6">
+        <div className="max-w-7xl mx-auto text-center text-sm text-slate-500">
+          <p>&copy; {new Date().getFullYear()} AD Innovation Services Plus. Tous droits réservés.</p>
         </div>
       </footer>
     </div>
@@ -94,3 +61,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+
